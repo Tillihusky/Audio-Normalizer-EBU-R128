@@ -5,7 +5,8 @@ setlocal enabledelayedexpansion
 ::  [TBS] EBU R128 Audio Normalization - Two-Pass Batch Script
 ::  Requires ffmpeg.exe to be in PATH or set FFMPEG_PATH below
 :: ============================================================
-set FFMPEG_PATH=C:\ffmpeg\bin\ffmpeg.exe
+
+set FFMPEG_PATH=C:\Videos\ffmpeg\bin\ffmpeg.exe
 set INPUT_DIR=C:\Videos\Input
 set OUTPUT_DIR=C:\Videos\Output
  
@@ -51,7 +52,6 @@ for %%F in ("%INPUT_DIR%\*.mp4" "%INPUT_DIR%\*.mkv" "%INPUT_DIR%\*.mov" "%INPUT_
         -af "loudnorm=I=%TARGET_I%:TP=%TARGET_TP%:LRA=%TARGET_LRA%:print_format=json" ^
         -f null - 2>"!TMPLOG!"
  
-    :: Parse values in a subroutine to avoid cmd parenthesis conflicts
     call :parse_log "!TMPLOG!"
  
     if "!M_I!"=="ERROR" (
@@ -88,25 +88,30 @@ exit /b 0
  
 :: ============================================================
 :parse_log
-:: Reads the ffmpeg log file and extracts loudnorm JSON values.
-:: Uses a subroutine so cmd parentheses in values don't break parsing.
-:: ============================================================
+set "LOGFILE=%~1"
 set "M_I=ERROR"
 set "M_TP=ERROR"
 set "M_LRA=ERROR"
 set "M_THRESH=ERROR"
 set "M_OFFSET=ERROR"
  
-for /f "usebackq tokens=1,2 delims=:, " %%A in (%1) do (
-    set "KEY=%%~A"
-    set "VAL=%%~B"
+call :extract_val "input_i"       M_I
+call :extract_val "input_tp"      M_TP
+call :extract_val "input_lra"     M_LRA
+call :extract_val "input_thresh"  M_THRESH
+call :extract_val "target_offset" M_OFFSET
+exit /b 0
  
-    set "KEY=!KEY: =!"
  
-    if "!KEY!"=="""input_i"""        set "M_I=!VAL!"
-    if "!KEY!"=="""input_tp"""       set "M_TP=!VAL!"
-    if "!KEY!"=="""input_lra"""      set "M_LRA=!VAL!"
-    if "!KEY!"=="""input_thresh"""   set "M_THRESH=!VAL!"
-    if "!KEY!"=="""target_offset"""  set "M_OFFSET=!VAL!"
+:extract_val
+:: %1 = JSON key, %2 = variable name to set
+:: LOGFILE is inherited from :parse_log
+for /f "usebackq tokens=*" %%L in (`findstr /c:%1 "!LOGFILE!"`) do (
+    set "RAW=%%L"
+    for /f "tokens=2 delims=:" %%V in ("!RAW!") do set "SIDE=%%V"
+    set "SIDE=!SIDE: =!"
+    set "SIDE=!SIDE:"=!"
+    set "SIDE=!SIDE:,=!"
+    set "%~2=!SIDE!"
 )
 exit /b 0
