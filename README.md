@@ -7,6 +7,7 @@ Batch-normalizes video audio to EBU R128 (−23 LUFS) via two-pass FFmpeg, video
 1. Install [ffmpeg](https://ffmpeg.org/download.html) and make sure it's in your PATH
 2. Edit the top of `normalize_audio.bat`:
 ```bat
+   set FFMPEG_PATH=C:\ffmpeg\bin\ffmpeg.exe
    set INPUT_DIR=C:\Videos\Input
    set OUTPUT_DIR=C:\Videos\Output
 ```
