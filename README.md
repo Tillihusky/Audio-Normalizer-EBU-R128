@@ -23,6 +23,7 @@ Batch-normalizes video audio to EBU R128 (−23 LUFS) via two-pass FFmpeg, video
 ```
 2. Edit the top of `normalize_audio.sh`:
 ```bash
+   FFMPEG="ffmpeg"
    INPUT_DIR="$HOME/Videos/Input"
    OUTPUT_DIR="$HOME/Videos/Output"
 ```
